@@ -1,0 +1,64 @@
+{
+  "nodes": {
+    "0.0": {
+      "op": "b",
+      "children": [],
+      "eclass": "0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "3.0": {
+      "op": "d",
+      "children": [],
+      "eclass": "3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "1.0": {
+      "op": "a",
+      "children": [],
+      "eclass": "1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "5.0": {
+      "op": "Add",
+      "children": [
+        "4.0",
+        "3.0"
+      ],
+      "eclass": "5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "6.0": {
+      "op": "Mul",
+      "children": [
+        "5.0",
+        "2.0"
+      ],
+      "eclass": "6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.0": {
+      "op": "c",
+      "children": [],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "2.0": {
+      "op": "Add",
+      "children": [
+        "1.0",
+        "0.0"
+      ],
+      "eclass": "2",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [],
+  "class_data": {}
+}
