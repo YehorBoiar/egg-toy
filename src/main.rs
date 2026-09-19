@@ -110,15 +110,36 @@ pub fn main() {
 
     let rules: &[Rewrite<Math, ()>] = &[
         rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
-        rewrite!("mult-zero"; "(* ?a 0)" => "0"),
-        rewrite!("add-zero"; "(+ ?a 0)" => "?a"),
+        rewrite!("commute-mul"; "(* ?a ?b)" => "(* ?b ?a)"),
+        rewrite!("mult-zero";   "(* ?a 0)"  => "0"),
+        rewrite!("add-zero";    "(+ ?a 0)"  => "?a"),
+        // Distributivity: expand AND factor
+        rewrite!("distribute-l"; "(* ?x (+ ?y ?z))" => "(+ (* ?x ?y) (* ?x ?z))"),
+        rewrite!("factor-l";     "(+ (* ?x ?y) (* ?x ?z))" => "(* ?x (+ ?y ?z))"),
+        rewrite!("distribute-r"; "(* (+ ?x ?y) ?z)" => "(+ (* ?x ?z) (* ?y ?z))"),
+        rewrite!("factor-r";     "(+ (* ?x ?z) (* ?y ?z))" => "(* (+ ?x ?y) ?z)"),
+        // Associativity: left and right
+        rewrite!("assoc-add-1"; "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
+        rewrite!("assoc-add-2"; "(+ ?a (+ ?b ?c))" => "(+ (+ ?a ?b) ?c)"),
     ];
 
+    // ((a * c) + (a * d)) + ((b * c) + (b * d))
     let expr: RecExpr<Math> = vec![
-        Math::Symbol("x".into()),
-        Math::Num(0),
-        Math::Mul([0.into(), 1.into()]),
-        Math::Add([2.into(), 0.into()]),
+        Math::Symbol("a".into()),          // 0
+        Math::Symbol("c".into()),          // 1
+        Math::Mul([0.into(), 1.into()]),   // 2: a * c
+        Math::Symbol("a".into()),          // 3
+        Math::Symbol("d".into()),          // 4
+        Math::Mul([3.into(), 4.into()]),   // 5: a * d
+        Math::Add([2.into(), 5.into()]),   // 6: (a * c) + (a * d)
+        Math::Symbol("b".into()),          // 7
+        Math::Symbol("c".into()),          // 8
+        Math::Mul([7.into(), 8.into()]),   // 9: b * c
+        Math::Symbol("b".into()),          // 10
+        Math::Symbol("d".into()),          // 11
+        Math::Mul([10.into(), 11.into()]), // 12: b * d
+        Math::Add([9.into(), 12.into()]),  // 13: (b * c) + (b * d)
+        Math::Add([6.into(), 13.into()]),  // 14: ((a * c) + (a * d)) + ((b * c) + (b * d))
     ]
     .into();
 
@@ -133,4 +154,18 @@ pub fn main() {
             Ok(())
         })
         .run(rules);
+
+    let (egraph, root) = (runner.egraph, runner.roots[0]);
+    let serialised = egg_to_serialized_egraph(&egraph);
+    serialised.to_json_file("filename2.json").unwrap();
+
+    let extractor = Extractor::new(&egraph, AstSize);
+    let (best_cost, best) = extractor.find_best(root);
+    let dummy_runner: Runner<Math, ()> = Runner::default().with_expr(&best).run(&[]);
+
+    let serialised = egg_to_serialized_egraph(&dummy_runner.egraph);
+    serialised.to_json_file("filename.json").unwrap();
+
+    println!("{:?}", best);
+    println!("{}", best_cost);
 }
