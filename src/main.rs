@@ -1,5 +1,5 @@
 mod serialiser;
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use egg::{
     AstSize, Extractor, FromOp, Id, Language, RecExpr, Rewrite, Runner, RunnerResult, Symbol,
@@ -89,18 +89,33 @@ impl FromOp for Math {
         }
     }
 }
+
+impl Display for Math {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Math::Num(num) => write!(f, "{}", num),
+            Math::Symbol(global_symbol) => write!(f, "{}", global_symbol),
+            Math::Add(_) => write!(f, "Add"),
+            Math::Mul(_) => write!(f, "Mul"),
+            Math::Div(_) => write!(f, "Div"),
+            Math::Shl(_) => write!(f, "Shl"),
+        }
+    }
+}
+
 pub fn main() {
     let rules: &[Rewrite<Math, ()>] = &[
         rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("mult-zero"; "(* ?a 0)" => "0"),
         rewrite!("add-zero"; "(+ ?a 0)" => "?a"),
+
     ];
 
     let expr: RecExpr<Math> = vec![
-        Math::Num(0),
         Math::Symbol("x".into()),
-        Math::Mul([1.into(), 0.into()]),
-        Math::Add([2.into(), 1.into()]),
+        Math::Num(0),
+        Math::Mul([0.into(), 1.into()]),
+        Math::Add([2.into(), 0.into()]),
     ]
     .into();
 
@@ -108,5 +123,9 @@ pub fn main() {
 
     let egraph = runner.egraph;
 
-    println!("{:?}", egraph);
+    let serialised = egg_to_serialized_egraph(&egraph);
+
+    println!("{:?}\n\n----\n\n", egraph);
+
+    serialised.to_json_file("egraph.json").unwrap();
 }
