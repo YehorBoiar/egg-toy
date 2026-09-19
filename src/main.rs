@@ -103,9 +103,11 @@ impl Display for Math {
     }
 }
 
+/// this right now produces json files for each iteration of the e-graph
+/// we can visualise them in here https://egraphs-good.github.io/egraph-visualizer/
 pub fn main() {
     env_logger::init();
-    
+
     let rules: &[Rewrite<Math, ()>] = &[
         rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("mult-zero"; "(* ?a 0)" => "0"),
@@ -120,13 +122,15 @@ pub fn main() {
     ]
     .into();
 
-    let runner = Runner::default().with_expr(&expr).run(rules);
-
-    let egraph = runner.egraph;
-
-    let serialised = egg_to_serialized_egraph(&egraph);
-
-    println!("{:?}\n\n----\n\n", egraph);
-
-    serialised.to_json_file("egraph.json").unwrap();
+    let runner: Runner<Math, ()> = Runner::default()
+        .with_expr(&expr)
+        .with_hook(|runner| {
+            let serialised = egg_to_serialized_egraph(&runner.egraph);
+            let iterations_done = &runner.iterations.len();
+            let filename = format!("iteration_{}.json", iterations_done);
+            serialised.to_json_file(filename).unwrap();
+            println!("Egraph is this big: {}", runner.egraph.total_size());
+            Ok(())
+        })
+        .run(rules);
 }
