@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use egg::{Analysis, EGraph, Language};
 
+/// https://github.com/egraphs-good/egraph-serialize
 pub fn egg_to_serialized_egraph<L, A>(egraph: &EGraph<L, A>) -> egraph_serialize::EGraph
 where
     L: Language + Display,
