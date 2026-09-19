@@ -7,6 +7,26 @@
       "cost": 1.0,
       "subsumed": false
     },
+    "7.0": {
+      "op": "Mul",
+      "children": [
+        "1.0",
+        "6.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.1": {
+      "op": "Mul",
+      "children": [
+        "6.0",
+        "1.0"
+      ],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
     "3.0": {
       "op": "d",
       "children": [],
@@ -14,23 +34,43 @@
       "cost": 1.0,
       "subsumed": false
     },
-    "36.0": {
-      "op": "Add",
-      "children": [
-        "4.0",
-        "7.0"
-      ],
-      "eclass": "36",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "47.0": {
+    "11.0": {
       "op": "Add",
       "children": [
         "5.0",
-        "8.0"
+        "9.0"
       ],
-      "eclass": "47",
+      "eclass": "11",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "11.1": {
+      "op": "Add",
+      "children": [
+        "9.0",
+        "5.0"
+      ],
+      "eclass": "11",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.0": {
+      "op": "Add",
+      "children": [
+        "1.0",
+        "3.0"
+      ],
+      "eclass": "18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "18.1": {
+      "op": "Add",
+      "children": [
+        "3.0",
+        "1.0"
+      ],
+      "eclass": "18",
       "cost": 1.0,
       "subsumed": false
     },
@@ -41,123 +81,23 @@
       "cost": 1.0,
       "subsumed": false
     },
-    "50.0": {
-      "op": "Add",
-      "children": [
-        "2.0",
-        "21.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.1": {
-      "op": "Add",
-      "children": [
-        "4.0",
-        "40.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.2": {
-      "op": "Add",
-      "children": [
-        "5.0",
-        "9.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.3": {
-      "op": "Add",
-      "children": [
-        "7.0",
-        "42.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.4": {
-      "op": "Add",
-      "children": [
-        "8.0",
-        "23.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.5": {
-      "op": "Add",
-      "children": [
-        "9.0",
-        "5.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.6": {
-      "op": "Add",
-      "children": [
-        "21.0",
-        "2.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.7": {
-      "op": "Add",
-      "children": [
-        "23.0",
-        "8.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.8": {
-      "op": "Add",
-      "children": [
-        "47.0",
-        "7.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.9": {
-      "op": "Add",
-      "children": [
-        "49.0",
-        "4.0"
-      ],
-      "eclass": "50",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "50.10": {
+    "2.0": {
       "op": "Mul",
       "children": [
-        "32.0",
-        "18.0"
+        "0.0",
+        "1.0"
       ],
-      "eclass": "50",
+      "eclass": "2",
       "cost": 1.0,
       "subsumed": false
     },
-    "50.11": {
+    "2.1": {
       "op": "Mul",
       "children": [
-        "34.0",
-        "18.0"
+        "1.0",
+        "0.0"
       ],
-      "eclass": "50",
+      "eclass": "2",
       "cost": 1.0,
       "subsumed": false
     },
@@ -201,223 +141,6 @@
       "cost": 1.0,
       "subsumed": false
     },
-    "42.0": {
-      "op": "Add",
-      "children": [
-        "8.0",
-        "5.0"
-      ],
-      "eclass": "42",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "1.0": {
-      "op": "c",
-      "children": [],
-      "eclass": "1",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "23.0": {
-      "op": "Add",
-      "children": [
-        "2.0",
-        "36.0"
-      ],
-      "eclass": "23",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "23.1": {
-      "op": "Add",
-      "children": [
-        "4.0",
-        "38.0"
-      ],
-      "eclass": "23",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "23.2": {
-      "op": "Add",
-      "children": [
-        "5.0",
-        "7.0"
-      ],
-      "eclass": "23",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "23.3": {
-      "op": "Add",
-      "children": [
-        "7.0",
-        "5.0"
-      ],
-      "eclass": "23",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "34.0": {
-      "op": "Add",
-      "children": [
-        "6.0",
-        "0.0"
-      ],
-      "eclass": "34",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "4.0": {
-      "op": "Mul",
-      "children": [
-        "0.0",
-        "3.0"
-      ],
-      "eclass": "4",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "4.1": {
-      "op": "Mul",
-      "children": [
-        "3.0",
-        "0.0"
-      ],
-      "eclass": "4",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "45.0": {
-      "op": "Add",
-      "children": [
-        "4.0",
-        "8.0"
-      ],
-      "eclass": "45",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "7.0": {
-      "op": "Mul",
-      "children": [
-        "1.0",
-        "6.0"
-      ],
-      "eclass": "7",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "7.1": {
-      "op": "Mul",
-      "children": [
-        "6.0",
-        "1.0"
-      ],
-      "eclass": "7",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "18.0": {
-      "op": "Add",
-      "children": [
-        "1.0",
-        "3.0"
-      ],
-      "eclass": "18",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "18.1": {
-      "op": "Add",
-      "children": [
-        "3.0",
-        "1.0"
-      ],
-      "eclass": "18",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "40.0": {
-      "op": "Add",
-      "children": [
-        "2.0",
-        "9.0"
-      ],
-      "eclass": "40",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "21.0": {
-      "op": "Add",
-      "children": [
-        "4.0",
-        "9.0"
-      ],
-      "eclass": "21",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "21.1": {
-      "op": "Add",
-      "children": [
-        "9.0",
-        "4.0"
-      ],
-      "eclass": "21",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "21.2": {
-      "op": "Add",
-      "children": [
-        "36.0",
-        "8.0"
-      ],
-      "eclass": "21",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "21.3": {
-      "op": "Add",
-      "children": [
-        "45.0",
-        "7.0"
-      ],
-      "eclass": "21",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "32.0": {
-      "op": "Add",
-      "children": [
-        "0.0",
-        "6.0"
-      ],
-      "eclass": "32",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "2.0": {
-      "op": "Mul",
-      "children": [
-        "0.0",
-        "1.0"
-      ],
-      "eclass": "2",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "2.1": {
-      "op": "Mul",
-      "children": [
-        "1.0",
-        "0.0"
-      ],
-      "eclass": "2",
-      "cost": 1.0,
-      "subsumed": false
-    },
     "5.0": {
       "op": "Add",
       "children": [
@@ -458,23 +181,10 @@
       "cost": 1.0,
       "subsumed": false
     },
-    "38.0": {
-      "op": "Add",
-      "children": [
-        "2.0",
-        "7.0"
-      ],
-      "eclass": "38",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "49.0": {
-      "op": "Add",
-      "children": [
-        "9.0",
-        "2.0"
-      ],
-      "eclass": "49",
+    "1.0": {
+      "op": "c",
+      "children": [],
+      "eclass": "1",
       "cost": 1.0,
       "subsumed": false
     },
@@ -495,6 +205,26 @@
         "3.0"
       ],
       "eclass": "8",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.0": {
+      "op": "Mul",
+      "children": [
+        "0.0",
+        "3.0"
+      ],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.1": {
+      "op": "Mul",
+      "children": [
+        "3.0",
+        "0.0"
+      ],
+      "eclass": "4",
       "cost": 1.0,
       "subsumed": false
     }

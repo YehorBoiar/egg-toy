@@ -113,14 +113,7 @@ pub fn main() {
         rewrite!("commute-mul"; "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult-zero";   "(* ?a 0)"  => "0"),
         rewrite!("add-zero";    "(+ ?a 0)"  => "?a"),
-        // Distributivity: expand AND factor
-        rewrite!("distribute-l"; "(* ?x (+ ?y ?z))" => "(+ (* ?x ?y) (* ?x ?z))"),
-        rewrite!("factor-l";     "(+ (* ?x ?y) (* ?x ?z))" => "(* ?x (+ ?y ?z))"),
-        rewrite!("distribute-r"; "(* (+ ?x ?y) ?z)" => "(+ (* ?x ?z) (* ?y ?z))"),
-        rewrite!("factor-r";     "(+ (* ?x ?z) (* ?y ?z))" => "(* (+ ?x ?y) ?z)"),
-        // Associativity: left and right
-        rewrite!("assoc-add-1"; "(+ (+ ?a ?b) ?c)" => "(+ ?a (+ ?b ?c))"),
-        rewrite!("assoc-add-2"; "(+ ?a (+ ?b ?c))" => "(+ (+ ?a ?b) ?c)"),
+        rewrite!("factor";     "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
     ];
 
     // ((a * c) + (a * d)) + ((b * c) + (b * d))
@@ -157,7 +150,7 @@ pub fn main() {
 
     let (egraph, root) = (runner.egraph, runner.roots[0]);
     let serialised = egg_to_serialized_egraph(&egraph);
-    serialised.to_json_file("filename2.json").unwrap();
+    serialised.to_json_file("saturated.json").unwrap();
 
     let extractor = Extractor::new(&egraph, AstSize);
     let (best_cost, best) = extractor.find_best(root);
