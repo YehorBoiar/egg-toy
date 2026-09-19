@@ -104,11 +104,12 @@ impl Display for Math {
 }
 
 pub fn main() {
+    env_logger::init();
+    
     let rules: &[Rewrite<Math, ()>] = &[
         rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("mult-zero"; "(* ?a 0)" => "0"),
         rewrite!("add-zero"; "(+ ?a 0)" => "?a"),
-
     ];
 
     let expr: RecExpr<Math> = vec![
