@@ -112,6 +112,7 @@ pub fn main() {
         rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("commute-mul"; "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult-zero";   "(* ?a 0)"  => "0"),
+        // rewrite!("mult-one";   "?a"  => "(* ?a 1)"), // Why does it reduce to 0?
         rewrite!("add-zero";    "(+ ?a 0)"  => "?a"),
         rewrite!("factor";     "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
     ];
