@@ -42,7 +42,11 @@ impl Language for Math {
     }
 
     fn matches(&self, other: &Self) -> bool {
-        self.discriminant() == other.discriminant()
+        match (self, other) {
+            (Math::Num(a), Math::Num(b)) => a == b,
+            (Math::Symbol(a), Math::Symbol(b)) => a == b,
+            _ => self.discriminant() == other.discriminant(),
+        }
     }
 
     fn children(&self) -> &[Id] {
