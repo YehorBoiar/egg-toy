@@ -1,9 +1,10 @@
 mod serialiser;
+
 use std::{fmt::Display, str::FromStr};
 
 use egg::{
-    Applier, AstSize, CostFunction, Extractor, FromOp, Id, Language, PatternAst, RecExpr, Rewrite,
-    Runner, RunnerResult, Subst, Symbol, Var, rewrite,
+    Applier, AstSize, CostFunction, Extractor, FromOp, Id, Language, PatternAst, RecExpr,
+    Rewrite, Runner, RunnerResult, Subst, Symbol, Var, rewrite,
 };
 
 use serialiser::egg_to_serialized_egraph;
@@ -20,6 +21,7 @@ pub enum Math {
     AuxDiv([Id; 2]),
     And([Id; 2]),
     Lt([Id; 2]),
+    Eq([Id; 2]),
 }
 
 type EGraph = egg::EGraph<Math, ()>;
@@ -34,6 +36,7 @@ pub enum MathDiscriminant {
     Shl(),
     And(),
     Lt(),
+    Eq(),
     AuxDiv(),
 }
 
@@ -51,6 +54,7 @@ impl Language for Math {
             Math::AuxDiv(_) => MathDiscriminant::AuxDiv(),
             Math::And(_) => MathDiscriminant::And(),
             Math::Lt(_) => MathDiscriminant::Lt(),
+            Math::Eq(_) => MathDiscriminant::Eq(),
         }
     }
 
@@ -71,7 +75,8 @@ impl Language for Math {
             | Math::Shl(ids)
             | Math::AuxDiv(ids)
             | Math::And(ids)
-            | Math::Lt(ids) => ids,
+            | Math::Lt(ids)
+            | Math::Eq(ids) => ids,
         }
     }
 
@@ -84,7 +89,8 @@ impl Language for Math {
             | Math::Shl(ids)
             | Math::AuxDiv(ids)
             | Math::And(ids)
-            | Math::Lt(ids) => ids,
+            | Math::Lt(ids)
+            | Math::Eq(ids) => ids,
         }
     }
 }
@@ -100,9 +106,10 @@ impl FromOp for Math {
             ("+", 2) => Ok(Math::Add([children[0], children[1]])),
             ("*", 2) => Ok(Math::Mul([children[0], children[1]])),
             ("/", 2) => Ok(Math::Div([children[0], children[1]])),
-            ("aux", 2) => Ok(Math::AuxDiv([children[0], children[1]])),
+            ("auxdiv", 2) => Ok(Math::AuxDiv([children[0], children[1]])),
             ("and", 2) => Ok(Math::And([children[0], children[1]])),
             ("lt", 2) => Ok(Math::Lt([children[0], children[1]])),
+            ("eq", 2) => Ok(Math::Eq([children[0], children[1]])),
             (s, 0) => {
                 if let Ok(n) = s.parse::<i32>() {
                     Ok(Math::Num(n))
@@ -128,28 +135,43 @@ impl Display for Math {
             Math::AuxDiv(_) => write!(f, "AuxDiv"),
             Math::And(_) => write!(f, "And"),
             Math::Lt(_) => write!(f, "Lt"),
+            Math::Eq(_) => write!(f, "Eq"),
         }
     }
 }
 
 struct SillyCostFn;
+
 impl CostFunction<Math> for SillyCostFn {
     type Cost = f64;
+
     fn cost<C>(&mut self, enode: &Math, mut costs: C) -> Self::Cost
     where
         C: FnMut(Id) -> Self::Cost,
     {
         let op_cost = match enode {
+            // so far this says "div is always worse than anything"
             Math::Div(_) => 100.1,
             Math::AuxDiv(_) => 1.1,
             _ => 1.1,
         };
+
         enode.fold(op_cost, |sum, id| sum + costs(id))
     }
 }
 
+// This function would go through the final tree, replace all
+// AuxDiv with variables (if count condition holds) and return
+// back a populated RecExpr<Math>
+fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
+    let variables: RecExpr<Math> = vec![].into();
+
+    return vec![].into();
+}
+
 /// this right now produces json files for each iteration of the e-graph
-/// we can visualise them in here [https://egraphs-good.github.io/egraph-visualizer/](https://egraphs-good.github.io/egraph-visualizer/)
+/// we can visualise them in here:
+/// https://egraphs-good.github.io/egraph-visualizer/
 pub fn main() {
     env_logger::init();
 
@@ -159,13 +181,19 @@ pub fn main() {
         rewrite!("mult-zero";   "(* ?a 0)"  => "0"),
         // rewrite!("mult-one";   "?a"  => "(* ?a 1)"), // Why does it reduce to 0?
         rewrite!("add-zero";    "(+ ?a 0)"  => "?a"),
-        rewrite!("factor";     "(+ (* ?a ?b) (* ?a ?c))" => "(* ?a (+ ?b ?c))"),
+        rewrite!(
+            "factor";
+            "(+ (* ?a ?b) (* ?a ?c))" =>
+            "(* ?a (+ ?b ?c))"
+        ),
 
         // would need to add domain in future where x has a domain
-        // a new name has to appear 
-        rewrite!("div-to-aux"; "(/ ?x ?y)" => "(aux ?x ?y)"),
+        // a new name has to appear
+        rewrite!("div-to-aux"; "(/ ?x ?y)" => "(auxdiv ?x ?y)"),
+
         // (a + c*x) / (c*y) ~~> a / (c*y) + x / y
-        rewrite!("split-div";
+        rewrite!(
+            "split-div";
             "(/ (+ ?a (* ?c ?x)) (* ?c ?y))" =>
             "(+ (/ ?a (* ?c ?y)) (/ ?x ?y))"
         ),
@@ -222,19 +250,25 @@ pub fn main() {
             let serialised = egg_to_serialized_egraph(&runner.egraph);
             let iterations_done = &runner.iterations.len();
             let filename = format!("iteration_{}.json", iterations_done);
+
             serialised.to_json_file(filename).unwrap();
+
             println!("Egraph is this big: {}", runner.egraph.total_size());
+
             Ok(())
         })
         .run(rules);
 
     let (egraph, root) = (runner.egraph, runner.roots[0]);
+
     let serialised = egg_to_serialized_egraph(&egraph);
     serialised.to_json_file("saturated.json").unwrap();
 
     let extractor = Extractor::new(&egraph, SillyCostFn);
     let (best_cost, best) = extractor.find_best(root);
-    let dummy_runner: Runner<Math, ()> = Runner::default().with_expr(&best).run(&[]);
+
+    let dummy_runner: Runner<Math, ()> =
+        Runner::default().with_expr(&best).run(&[]);
 
     let serialised = egg_to_serialized_egraph(&dummy_runner.egraph);
     serialised.to_json_file("filename.json").unwrap();

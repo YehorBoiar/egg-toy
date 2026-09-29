@@ -34,6 +34,22 @@ Now, how do we decide whether we want to apply the "rule 2" in desctructive rule
 
 ## How would we solve that using proposed e-graph rule engine?
 
-I don't know...
+We write an aux rule
 
-I currently am struggling to create a rule that would hold an auxiliary varialbe.
+We write a cost function that says "Div is always forse than aux"
+
+in post processing we start replacing aux with top-level constraint
+
+if we replaced only once, we replace it back with simple div
+
+otherwise we keep variable
+
+--- 
+
+Cought analysis paralysis here:
+
+
+
+"""
+How do we calcualte the tree that contains aux is actually a better solution? Currently I've been just treating the cost function as a black box, but I would need to check it out.
+"""
