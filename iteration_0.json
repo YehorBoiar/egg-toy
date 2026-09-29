@@ -7,94 +7,152 @@
       "cost": 1.0,
       "subsumed": false
     },
-    "7.0": {
-      "op": "Mul",
+    "11.0": {
+      "op": "Lt",
       "children": [
-        "6.0",
-        "1.0"
+        "9.0",
+        "10.0"
       ],
-      "eclass": "7",
+      "eclass": "11",
       "cost": 1.0,
       "subsumed": false
     },
     "3.0": {
-      "op": "d",
+      "op": "x",
       "children": [],
       "eclass": "3",
       "cost": 1.0,
       "subsumed": false
     },
-    "10.0": {
+    "14.0": {
       "op": "Add",
       "children": [
-        "5.0",
-        "9.0"
+        "12.0",
+        "13.0"
       ],
-      "eclass": "10",
+      "eclass": "14",
       "cost": 1.0,
       "subsumed": false
     },
     "6.0": {
-      "op": "b",
-      "children": [],
+      "op": "Add",
+      "children": [
+        "2.0",
+        "5.0"
+      ],
       "eclass": "6",
       "cost": 1.0,
       "subsumed": false
     },
-    "2.0": {
-      "op": "Mul",
+    "17.0": {
+      "op": "And",
       "children": [
-        "0.0",
-        "1.0"
+        "11.0",
+        "16.0"
       ],
-      "eclass": "2",
+      "eclass": "17",
       "cost": 1.0,
       "subsumed": false
     },
     "9.0": {
-      "op": "Add",
+      "op": "Div",
       "children": [
-        "7.0",
+        "6.0",
         "8.0"
       ],
       "eclass": "9",
       "cost": 1.0,
       "subsumed": false
     },
-    "5.0": {
-      "op": "Add",
+    "1.0": {
+      "op": "2",
+      "children": [],
+      "eclass": "1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "12.0": {
+      "op": "c",
+      "children": [],
+      "eclass": "12",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.0": {
+      "op": "3",
+      "children": [],
+      "eclass": "4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "15.0": {
+      "op": "d",
+      "children": [],
+      "eclass": "15",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.0": {
+      "op": "y",
+      "children": [],
+      "eclass": "7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "10.0": {
+      "op": "b",
+      "children": [],
+      "eclass": "10",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "2.0": {
+      "op": "Mul",
       "children": [
-        "2.0",
-        "4.0"
+        "1.0",
+        "0.0"
+      ],
+      "eclass": "2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "13.0": {
+      "op": "Div",
+      "children": [
+        "3.0",
+        "7.0"
+      ],
+      "eclass": "13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "5.0": {
+      "op": "Mul",
+      "children": [
+        "4.0",
+        "3.0"
       ],
       "eclass": "5",
       "cost": 1.0,
       "subsumed": false
     },
-    "1.0": {
-      "op": "c",
-      "children": [],
-      "eclass": "1",
+    "16.0": {
+      "op": "Lt",
+      "children": [
+        "14.0",
+        "15.0"
+      ],
+      "eclass": "16",
       "cost": 1.0,
       "subsumed": false
     },
     "8.0": {
       "op": "Mul",
       "children": [
-        "6.0",
-        "3.0"
+        "4.0",
+        "7.0"
       ],
       "eclass": "8",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "4.0": {
-      "op": "Mul",
-      "children": [
-        "0.0",
-        "3.0"
-      ],
-      "eclass": "4",
       "cost": 1.0,
       "subsumed": false
     }
