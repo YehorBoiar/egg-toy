@@ -1,13 +1,14 @@
 mod serialiser;
 
-use std::{fmt::Display, str::FromStr};
+use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use egg::{
-    Applier, AstSize, CostFunction, Extractor, FromOp, Id, Language, PatternAst, RecExpr,
-    Rewrite, Runner, RunnerResult, Subst, Symbol, Var, rewrite,
+    Applier, AstSize, CostFunction, ENodeOrVar::Var, Extractor, FromOp, Id, Language, PatternAst, RecExpr, Rewrite, Runner, RunnerResult, Subst, Symbol, rewrite,
 };
 
 use serialiser::egg_to_serialized_egraph;
+
+use crate::MathDiscriminant::AuxDiv;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, PartialOrd, Ord)]
 pub enum Math {
@@ -142,6 +143,93 @@ impl Display for Math {
 
 struct SillyCostFn;
 
+// This function would go through the final tree, replace all
+// AuxDiv with variables (if count condition holds) and return
+// back a populated RecExpr<Math>
+// Input: (* (aux ?a ?b) ?c)
+//
+//
+// Output: (/\ (* v_0 ?c) (== (* v_0 ?a) ?b))
+// How do we keep track of ids because when we replace ?a and ?b. They exist in the
+// array at the very start. 
+fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
+    let mut final_expression: RecExpr<Math> = vec![].into();
+    // each set represents == (* v_0 ?a) ?b
+    let mut constraints: Vec<(Id, Id, Id)> = vec![];
+    
+        
+    for node in final_tree {
+        match node {
+            Math::Num(n) => {
+                final_expression.add(Math::Num(n));
+            }
+
+            Math::Symbol(s) => {
+                final_expression.add(Math::Symbol(s));
+            }
+
+            Math::Add([a, b]) => {
+                final_expression.add(Math::Add([a.into(), b.into()]));
+            }
+
+            Math::Mul([a, b]) => {
+                final_expression.add(Math::Mul([a.into(), b.into()]));
+            }
+
+            Math::Div([a, b]) => {
+                final_expression.add(Math::Div([a.into(), b.into()]));
+            }
+
+            Math::Shl([a, b]) => {
+                final_expression.add(Math::Shl([a.into(), b.into()]));
+            }
+
+            Math::And([a, b]) => {
+                final_expression.add(Math::And([a.into(), b.into()]));
+            }
+
+            Math::Lt([a, b]) => {
+                final_expression.add(Math::Lt([a.into(), b.into()]));
+            }
+
+            Math::Eq([a, b]) => {
+                final_expression.add(Math::Eq([a.into(), b.into()]));
+            }
+            Math::AuxDiv([a, b]) => {
+                // let equality = Math::Eq([])
+                // here we would create an expression for the auxdiv that than we would put
+                // into the array. than we would just and everything in that expression into
+                // the array
+                // see auxdiv -> remember a and b
+                // replace auxdiv with variable
+                // create the aux * y
+                // create the aux * y = x
+                // write it in the list of final var constraints
+                println!("{} {}", a, b);
+
+                let var_name = format!("v_{}", constraints.len());
+                let var_id = final_expression.add(Math::Symbol(var_name.into()));
+                println!("{:?}", var_id);
+
+                constraints.push((var_id, a, b));
+            },
+        }
+    }
+
+
+    let mut root_id = Id::from(final_expression.as_ref().len() - 1);
+    
+    for (var_id, a, b) in constraints {
+        // Enforce: (var_id * b) == a
+        let mul_id = final_expression.add(Math::Mul([var_id, b]));
+        let eq_id = final_expression.add(Math::Eq([mul_id, a]));
+        root_id = final_expression.add(Math::And([root_id, eq_id]));
+    }
+
+    final_expression
+}
+
+
 impl CostFunction<Math> for SillyCostFn {
     type Cost = f64;
 
@@ -152,7 +240,7 @@ impl CostFunction<Math> for SillyCostFn {
         let op_cost = match enode {
             // so far this says "div is always worse than anything"
             Math::Div(_) => 100.1,
-            Math::AuxDiv(_) => 1.1,
+            Math::AuxDiv(_) => 20.1,
             _ => 1.1,
         };
 
@@ -160,14 +248,6 @@ impl CostFunction<Math> for SillyCostFn {
     }
 }
 
-// This function would go through the final tree, replace all
-// AuxDiv with variables (if count condition holds) and return
-// back a populated RecExpr<Math>
-fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
-    let variables: RecExpr<Math> = vec![].into();
-
-    return vec![].into();
-}
 
 /// this right now produces json files for each iteration of the e-graph
 /// we can visualise them in here:
@@ -219,10 +299,19 @@ pub fn main() {
     // ]
     // .into();
 
+    
+    // let expr: RecExpr<Math> = vec![
+    //     Math::Symbol("a".into()),
+    //     Math::Symbol("b".into()),
+    //     Math::AuxDiv([0.into(), 1.into()]),
+    //     Math::Symbol("c".into()),
+    //     Math::Mul([2.into(), 3.into()])
+    // ].into();
+
     let expr: RecExpr<Math> = vec![
         Math::Symbol("a".into()),          // 0
         Math::Num(2),                      // 1
-        Math::Mul([1.into(), 0.into()]),   // 2: 2a
+        Math::Mul([0.into(), 1.into()]),   // 2: 2a
         Math::Symbol("x".into()),          // 3
         Math::Num(3),                      // 4
         Math::Mul([4.into(), 3.into()]),   // 5: 3x
@@ -265,14 +354,25 @@ pub fn main() {
     serialised.to_json_file("saturated.json").unwrap();
 
     let extractor = Extractor::new(&egraph, SillyCostFn);
-    let (best_cost, best) = extractor.find_best(root);
 
+    let (best_cost, best) = extractor.find_best(root);
+    let dummy_run = populate_auxiliary_division(best);
+    
     let dummy_runner: Runner<Math, ()> =
-        Runner::default().with_expr(&best).run(&[]);
+        Runner::default().with_expr(&dummy_run).run(&[]);
 
     let serialised = egg_to_serialized_egraph(&dummy_runner.egraph);
     serialised.to_json_file("filename.json").unwrap();
 
-    println!("{:?}", best);
+    /*
+    we've got a result that says this
+    we basically made aux variable to rewrite everything
+    (
+        ((v_1 < b) /\ (c + v_0 < d))
+        /\ (v_0 * y == x)
+    )
+    /\ (v_1 * (3 * y) == (a * 2) + (x * 3))
+     */
+    println!("{:?}", dummy_run);
     println!("{}", best_cost);
 }
