@@ -1,9 +1,14 @@
 mod serialiser;
 
-use std::{collections::HashMap, fmt::Display, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::Display,
+    str::FromStr,
+};
 
 use egg::{
-    Applier, AstSize, CostFunction, ENodeOrVar::Var, Extractor, FromOp, Id, Language, PatternAst, RecExpr, Rewrite, Runner, RunnerResult, Subst, Symbol, rewrite,
+    Applier, AstSize, CostFunction, ENodeOrVar::Var, Extractor, FromOp, Id, Language, PatternAst,
+    RecExpr, Rewrite, Runner, RunnerResult, Subst, Symbol, rewrite,
 };
 
 use serialiser::egg_to_serialized_egraph;
@@ -141,8 +146,6 @@ impl Display for Math {
     }
 }
 
-struct SillyCostFn;
-
 // This function would go through the final tree, replace all
 // AuxDiv with variables (if count condition holds) and return
 // back a populated RecExpr<Math>
@@ -151,13 +154,12 @@ struct SillyCostFn;
 //
 // Output: (/\ (* v_0 ?c) (== (* v_0 ?a) ?b))
 // How do we keep track of ids because when we replace ?a and ?b. They exist in the
-// array at the very start. 
+// array at the very start.
 fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
     let mut final_expression: RecExpr<Math> = vec![].into();
     // each set represents == (* v_0 ?a) ?b
     let mut constraints: Vec<(Id, Id, Id)> = vec![];
-    
-        
+
     for node in final_tree {
         match node {
             Math::Num(n) => {
@@ -212,13 +214,12 @@ fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
                 println!("{:?}", var_id);
 
                 constraints.push((var_id, a, b));
-            },
+            }
         }
     }
 
-
     let mut root_id = Id::from(final_expression.as_ref().len() - 1);
-    
+
     for (var_id, a, b) in constraints {
         // Enforce: (var_id * b) == a
         let mul_id = final_expression.add(Math::Mul([var_id, b]));
@@ -229,8 +230,11 @@ fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
     final_expression
 }
 
+struct SillyCostFn<'a> {
+    egraph: &'a EGraph,
+}
 
-impl CostFunction<Math> for SillyCostFn {
+impl<'a> CostFunction<Math> for SillyCostFn<'a> {
     type Cost = f64;
 
     fn cost<C>(&mut self, enode: &Math, mut costs: C) -> Self::Cost
@@ -238,16 +242,29 @@ impl CostFunction<Math> for SillyCostFn {
         C: FnMut(Id) -> Self::Cost,
     {
         let op_cost = match enode {
-            // so far this says "div is always worse than anything"
+            // we need it to say "auxdiv is worse than div when only 1 e-class points at the e-class where the
+            // division is placed"
             Math::Div(_) => 100.1,
-            Math::AuxDiv(_) => 20.1,
+            Math::AuxDiv(_) => {
+                // this looksup an id of current enode
+                let id = self.egraph.lookup(enode.clone()).unwrap();
+
+                // this counts how many canonicalised enodes point to our division
+                let parent_classes: HashSet<Id> = self.egraph[id]
+                    .parents()
+                    .map(|parent_enode_id| self.egraph.find(parent_enode_id))
+                    .collect();
+
+                let parent_count = parent_classes.len();
+                
+                if parent_count > 1 { 1.1 } else { 200.1 }
+            }
             _ => 1.1,
         };
 
         enode.fold(op_cost, |sum, id| sum + costs(id))
     }
 }
-
 
 /// this right now produces json files for each iteration of the e-graph
 /// we can visualise them in here:
@@ -266,11 +283,9 @@ pub fn main() {
             "(+ (* ?a ?b) (* ?a ?c))" =>
             "(* ?a (+ ?b ?c))"
         ),
-
         // would need to add domain in future where x has a domain
         // a new name has to appear
         rewrite!("div-to-aux"; "(/ ?x ?y)" => "(auxdiv ?x ?y)"),
-
         // (a + c*x) / (c*y) ~~> a / (c*y) + x / y
         rewrite!(
             "split-div";
@@ -299,7 +314,6 @@ pub fn main() {
     // ]
     // .into();
 
-    
     // let expr: RecExpr<Math> = vec![
     //     Math::Symbol("a".into()),
     //     Math::Symbol("b".into()),
@@ -353,13 +367,13 @@ pub fn main() {
     let serialised = egg_to_serialized_egraph(&egraph);
     serialised.to_json_file("saturated.json").unwrap();
 
-    let extractor = Extractor::new(&egraph, SillyCostFn);
+    let extractor = Extractor::new(&egraph, SillyCostFn { egraph: &egraph });
 
     let (best_cost, best) = extractor.find_best(root);
+
     let dummy_run = populate_auxiliary_division(best);
-    
-    let dummy_runner: Runner<Math, ()> =
-        Runner::default().with_expr(&dummy_run).run(&[]);
+
+    let dummy_runner: Runner<Math, ()> = Runner::default().with_expr(&dummy_run).run(&[]);
 
     let serialised = egg_to_serialized_egraph(&dummy_runner.egraph);
     serialised.to_json_file("filename.json").unwrap();
