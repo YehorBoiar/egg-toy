@@ -24,10 +24,20 @@
     "14.0": {
       "op": "Add",
       "children": [
-        "13.0",
-        "3.0"
+        "3.0",
+        "13.0"
       ],
       "eclass": "14",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "22.0": {
+      "op": "And",
+      "children": [
+        "19.0",
+        "21.0"
+      ],
+      "eclass": "22",
       "cost": 1.0,
       "subsumed": false
     },
@@ -58,6 +68,16 @@
         "1.0"
       ],
       "eclass": "9",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "20.0": {
+      "op": "Mul",
+      "children": [
+        "13.0",
+        "9.0"
+      ],
+      "eclass": "20",
       "cost": 1.0,
       "subsumed": false
     },
@@ -119,6 +139,16 @@
       "cost": 1.0,
       "subsumed": false
     },
+    "21.0": {
+      "op": "Eq",
+      "children": [
+        "20.0",
+        "12.0"
+      ],
+      "eclass": "21",
+      "cost": 1.0,
+      "subsumed": false
+    },
     "2.0": {
       "op": "x",
       "children": [],
@@ -127,11 +157,8 @@
       "subsumed": false
     },
     "13.0": {
-      "op": "Div",
-      "children": [
-        "12.0",
-        "9.0"
-      ],
+      "op": "v_1",
+      "children": [],
       "eclass": "13",
       "cost": 1.0,
       "subsumed": false
