@@ -1,4 +1,3 @@
-
 use std::{
     collections::{HashMap, HashSet},
     fmt::Display,
@@ -10,6 +9,7 @@ use egg::{
     RecExpr, Rewrite, Runner, RunnerResult, Subst, Symbol, rewrite,
 };
 
+use crate::IntervalAnalysis;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, PartialOrd, Ord)]
 pub enum Math {
@@ -24,9 +24,10 @@ pub enum Math {
     And([Id; 2]),
     Lt([Id; 2]),
     Eq([Id; 2]),
+    Not([Id; 1]),
 }
 
-pub type EGraph = egg::EGraph<Math, ()>;
+pub type EGraph = egg::EGraph<Math, IntervalAnalysis>;
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, PartialOrd, Ord)]
 pub enum MathDiscriminant {
@@ -40,6 +41,7 @@ pub enum MathDiscriminant {
     Lt(),
     Eq(),
     AuxDiv(),
+    Not(),
 }
 
 impl Language for Math {
@@ -57,6 +59,7 @@ impl Language for Math {
             Math::And(_) => MathDiscriminant::And(),
             Math::Lt(_) => MathDiscriminant::Lt(),
             Math::Eq(_) => MathDiscriminant::Eq(),
+            Math::Not(_) => MathDiscriminant::Not(),
         }
     }
 
@@ -71,6 +74,7 @@ impl Language for Math {
     fn children(&self) -> &[Id] {
         match self {
             Math::Num(_) | Math::Symbol(_) => &[],
+            Math::Not(ids) => ids,
             Math::Add(ids)
             | Math::Mul(ids)
             | Math::Div(ids)
@@ -85,6 +89,7 @@ impl Language for Math {
     fn children_mut(&mut self) -> &mut [Id] {
         match self {
             Math::Num(_) | Math::Symbol(_) => &mut [],
+            Math::Not(ids) => ids,
             Math::Add(ids)
             | Math::Mul(ids)
             | Math::Div(ids)
@@ -112,6 +117,7 @@ impl FromOp for Math {
             ("and", 2) => Ok(Math::And([children[0], children[1]])),
             ("lt", 2) => Ok(Math::Lt([children[0], children[1]])),
             ("eq", 2) => Ok(Math::Eq([children[0], children[1]])),
+            ("not", 1) => Ok(Math::Not([children[0]])),
             (s, 0) => {
                 if let Ok(n) = s.parse::<i32>() {
                     Ok(Math::Num(n))
@@ -138,6 +144,7 @@ impl Display for Math {
             Math::And(_) => write!(f, "And"),
             Math::Lt(_) => write!(f, "Lt"),
             Math::Eq(_) => write!(f, "Eq"),
+            Math::Not(_) => write!(f, "Not"),
         }
     }
 }

@@ -63,6 +63,11 @@ pub fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
             Math::Eq([a, b]) => {
                 final_expression.add(Math::Eq([a.into(), b.into()]));
             }
+
+            Math::Not(a) => {
+                final_expression.add(Math::Not(a.into()));
+            }
+
             Math::AuxDiv([a, b]) => {
                 // let equality = Math::Eq([])
                 // here we would create an expression for the auxdiv that than we would put

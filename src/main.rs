@@ -10,8 +10,8 @@ use std::{
 };
 
 use egg::{
-    Applier, AstSize, CostFunction, ENodeOrVar::Var, Extractor, FromOp, Id, Language, PatternAst,
-    RecExpr, Rewrite, Runner, RunnerResult, Subst, Symbol, rewrite,
+    Analysis, Applier, AstSize, CostFunction, ENodeOrVar::Var, Extractor, FromOp, Id, Language,
+    PatternAst, RecExpr, Rewrite, Runner, RunnerResult, Subst, Symbol, rewrite,
 };
 
 use serialiser::egg_to_serialized_egraph;
@@ -22,13 +22,52 @@ use crate::{
     language_definition::{EGraph, Math},
 };
 
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+struct IntRange {
+    min_value: i32,
+    max_value: i32,
+}
+
+#[derive(Default, Debug)]
+struct IntervalAnalysis {
+    domains: HashMap<Symbol, IntRange>,
+}
+
+impl Analysis<Math> for IntervalAnalysis {
+    type Data = Option<IntRange>;
+
+    fn make(egraph: &mut egg::EGraph<Math, Self>, enode: &Math, id: Id) -> Self::Data {
+        match enode {
+            Math::Num(n) => Some(IntRange {
+                min_value: *n,
+                max_value: *n,
+            }),
+
+            Math::Symbol(sym) => {
+                if let Some(range) = egraph.analysis.domains.get(sym) {
+                    println!("{:?}, {:?}", sym, range);
+                    Some(range.clone())
+                } else {
+                    None
+                }
+            }
+
+            _ => None,
+        }
+    }
+
+    fn merge(&mut self, a: &mut Self::Data, b: Self::Data) -> egg::DidMerge {
+        egg::DidMerge(true, true)
+    }
+}
+
 /// this right now produces json files for each iteration of the e-graph
 /// we can visualise them in here:
 /// https://egraphs-good.github.io/egraph-visualizer/
 pub fn main() {
     env_logger::init();
 
-    let rules: &[Rewrite<Math, ()>] = &[
+    let rules: &[Rewrite<Math, IntervalAnalysis>] = &[
         rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
         rewrite!("commute-mul"; "(* ?a ?b)" => "(* ?b ?a)"),
         rewrite!("mult-zero";   "(* ?a 0)"  => "0"),
@@ -50,60 +89,43 @@ pub fn main() {
         ),
     ];
 
-    // ((a * c) + (a * d)) + ((b * c) + (b * d))
-    // let expr: RecExpr<Math> = vec![
-    //     Math::Symbol("a".into()),          // 0
-    //     Math::Symbol("c".into()),          // 1
-    //     Math::Mul([0.into(), 1.into()]),   // 2: a * c
-    //     Math::Symbol("a".into()),          // 3
-    //     Math::Symbol("d".into()),          // 4
-    //     Math::Mul([3.into(), 4.into()]),   // 5: a * d
-    //     Math::Add([2.into(), 5.into()]),   // 6: (a * c) + (a * d)
-    //     Math::Symbol("b".into()),          // 7
-    //     Math::Symbol("c".into()),          // 8
-    //     Math::Mul([7.into(), 8.into()]),   // 9: b * c
-    //     Math::Symbol("b".into()),          // 10
-    //     Math::Symbol("d".into()),          // 11
-    //     Math::Mul([10.into(), 11.into()]), // 12: b * d
-    //     Math::Add([9.into(), 12.into()]),  // 13: (b * c) + (b * d)
-    //     Math::Add([6.into(), 13.into()]),  // 14: ((a * c) + (a * d)) + ((b * c) + (b * d))
-    // ]
-    // .into();
-
-    // let expr: RecExpr<Math> = vec![
-    //     Math::Symbol("a".into()),
-    //     Math::Symbol("b".into()),
-    //     Math::AuxDiv([0.into(), 1.into()]),
-    //     Math::Symbol("c".into()),
-    //     Math::Mul([2.into(), 3.into()])
-    // ].into();
-
     let expr: RecExpr<Math> = vec![
-        Math::Symbol("a".into()),          // 0
-        Math::Num(2),                      // 1
-        Math::Mul([0.into(), 1.into()]),   // 2: 2a
-        Math::Symbol("x".into()),          // 3
-        Math::Num(3),                      // 4
-        Math::Mul([4.into(), 3.into()]),   // 5: 3x
-        Math::Add([2.into(), 5.into()]),   // 6: 2a + 3x
-        Math::Num(3),                      // 7
-        Math::Symbol("y".into()),          // 8
-        Math::Mul([7.into(), 8.into()]),   // 9: 3y
-        Math::Div([6.into(), 9.into()]),   // 10: (2a + 3x) / 3y
-        Math::Symbol("b".into()),          // 11
-        Math::Lt([10.into(), 11.into()]),  // 12: (2a + 3x)/3y < b
-        Math::Symbol("c".into()),          // 13
-        Math::Symbol("x".into()),          // 14
-        Math::Symbol("y".into()),          // 15
-        Math::Div([14.into(), 15.into()]), // 16: x/y
-        Math::Add([13.into(), 16.into()]), // 17: c + x/y
-        Math::Symbol("d".into()),          // 18
-        Math::Lt([17.into(), 18.into()]),  // 19: c + x/y < d
-        Math::And([12.into(), 19.into()]), // 20: first inequality /\ second inequality
+        Math::Symbol("x".into()),
+        Math::Symbol("y".into()),
+        Math::AuxDiv([0.into(), 1.into()]),
+        Math::Symbol("z".into()),
+        Math::Eq([2.into(), 3.into()]),
     ]
     .into();
 
-    let runner: Runner<Math, ()> = Runner::default()
+    let mut domains = HashMap::new();
+    // 2. Put your domains into it using the variable names
+    domains.insert(
+        Symbol::from("x"),
+        IntRange {
+            min_value: -4,
+            max_value: 4,
+        },
+    );
+    domains.insert(
+        Symbol::from("y"),
+        IntRange {
+            min_value: -4,
+            max_value: 4,
+        },
+    );
+    domains.insert(
+        Symbol::from("z"),
+        IntRange {
+            min_value: 1,
+            max_value: 2,
+        },
+    );
+
+    // 3. Package the HashMap inside your custom Analysis struct
+    let analysis: IntervalAnalysis = IntervalAnalysis { domains: domains };
+
+    let runner: Runner<Math, IntervalAnalysis> = Runner::new(analysis)
         .with_expr(&expr)
         .with_hook(|runner| {
             let serialised = egg_to_serialized_egraph(&runner.egraph);
@@ -146,3 +168,48 @@ pub fn main() {
     println!("{:?}", dummy_run);
     println!("{}", best_cost);
 }
+
+// ((a * c) + (a * d)) + ((b * c) + (b * d))
+// let expr: RecExpr<Math> = vec![
+//     Math::Symbol("a".into()),          // 0
+//     Math::Symbol("c".into()),          // 1
+//     Math::Mul([0.into(), 1.into()]),   // 2: a * c
+//     Math::Symbol("a".into()),          // 3
+//     Math::Symbol("d".into()),          // 4
+//     Math::Mul([3.into(), 4.into()]),   // 5: a * d
+//     Math::Add([2.into(), 5.into()]),   // 6: (a * c) + (a * d)
+//     Math::Symbol("b".into()),          // 7
+//     Math::Symbol("c".into()),          // 8
+//     Math::Mul([7.into(), 8.into()]),   // 9: b * c
+//     Math::Symbol("b".into()),          // 10
+//     Math::Symbol("d".into()),          // 11
+//     Math::Mul([10.into(), 11.into()]), // 12: b * d
+//     Math::Add([9.into(), 12.into()]),  // 13: (b * c) + (b * d)
+//     Math::Add([6.into(), 13.into()]),  // 14: ((a * c) + (a * d)) + ((b * c) + (b * d))
+// ]
+// .into();
+
+// let expr: RecExpr<Math> = vec![
+//     Math::Symbol("a".into()),          // 0
+//     Math::Num(2),                      // 1
+//     Math::Mul([0.into(), 1.into()]),   // 2: 2a
+//     Math::Symbol("x".into()),          // 3
+//     Math::Num(3),                      // 4
+//     Math::Mul([4.into(), 3.into()]),   // 5: 3x
+//     Math::Add([2.into(), 5.into()]),   // 6: 2a + 3x
+//     Math::Num(3),                      // 7
+//     Math::Symbol("y".into()),          // 8
+//     Math::Mul([7.into(), 8.into()]),   // 9: 3y
+//     Math::Div([6.into(), 9.into()]),   // 10: (2a + 3x) / 3y
+//     Math::Symbol("b".into()),          // 11
+//     Math::Lt([10.into(), 11.into()]),  // 12: (2a + 3x)/3y < b
+//     Math::Symbol("c".into()),          // 13
+//     Math::Symbol("x".into()),          // 14
+//     Math::Symbol("y".into()),          // 15
+//     Math::Div([14.into(), 15.into()]), // 16: x/y
+//     Math::Add([13.into(), 16.into()]), // 17: c + x/y
+//     Math::Symbol("d".into()),          // 18
+//     Math::Lt([17.into(), 18.into()]),  // 19: c + x/y < d
+//     Math::And([12.into(), 19.into()]), // 20: first inequality /\ second inequality
+// ]
+// .into();
