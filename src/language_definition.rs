@@ -18,6 +18,7 @@ pub enum Math {
     Add([Id; 2]),
     Mul([Id; 2]),
     Div([Id; 2]),
+    SaveDiv([Id; 2]),
     Shl([Id; 2]),
     // Represents an aux variable for the bubble rule described in example_equation
     AuxDiv([Id; 2]),
@@ -25,6 +26,7 @@ pub enum Math {
     Lt([Id; 2]),
     Eq([Id; 2]),
     Not([Id; 1]),
+    Bubble([Id; 2]),
 }
 
 pub type EGraph = egg::EGraph<Math, IntervalAnalysis>;
@@ -36,12 +38,14 @@ pub enum MathDiscriminant {
     Add(),
     Mul(),
     Div(),
+    SaveDiv(),
     Shl(),
     And(),
     Lt(),
     Eq(),
     AuxDiv(),
     Not(),
+    Bubble(),
 }
 
 impl Language for Math {
@@ -54,12 +58,14 @@ impl Language for Math {
             Math::Add(_) => MathDiscriminant::Add(),
             Math::Mul(_) => MathDiscriminant::Mul(),
             Math::Div(_) => MathDiscriminant::Div(),
+            Math::SaveDiv(_) => MathDiscriminant::SaveDiv(),
             Math::Shl(_) => MathDiscriminant::Shl(),
             Math::AuxDiv(_) => MathDiscriminant::AuxDiv(),
             Math::And(_) => MathDiscriminant::And(),
             Math::Lt(_) => MathDiscriminant::Lt(),
             Math::Eq(_) => MathDiscriminant::Eq(),
             Math::Not(_) => MathDiscriminant::Not(),
+            Math::Bubble(_) => MathDiscriminant::Bubble(),
         }
     }
 
@@ -78,11 +84,13 @@ impl Language for Math {
             Math::Add(ids)
             | Math::Mul(ids)
             | Math::Div(ids)
+            | Math::SaveDiv(ids)
             | Math::Shl(ids)
             | Math::AuxDiv(ids)
             | Math::And(ids)
             | Math::Lt(ids)
-            | Math::Eq(ids) => ids,
+            | Math::Eq(ids)
+            | Math::Bubble(ids) => ids,
         }
     }
 
@@ -93,11 +101,13 @@ impl Language for Math {
             Math::Add(ids)
             | Math::Mul(ids)
             | Math::Div(ids)
+            | Math::SaveDiv(ids)
             | Math::Shl(ids)
             | Math::AuxDiv(ids)
             | Math::And(ids)
             | Math::Lt(ids)
-            | Math::Eq(ids) => ids,
+            | Math::Eq(ids)
+            | Math::Bubble(ids) => ids,
         }
     }
 }
@@ -113,11 +123,13 @@ impl FromOp for Math {
             ("+", 2) => Ok(Math::Add([children[0], children[1]])),
             ("*", 2) => Ok(Math::Mul([children[0], children[1]])),
             ("/", 2) => Ok(Math::Div([children[0], children[1]])),
+            ("savediv", 2) => Ok(Math::SaveDiv([children[0], children[1]])),
             ("auxdiv", 2) => Ok(Math::AuxDiv([children[0], children[1]])),
             ("and", 2) => Ok(Math::And([children[0], children[1]])),
             ("lt", 2) => Ok(Math::Lt([children[0], children[1]])),
             ("eq", 2) => Ok(Math::Eq([children[0], children[1]])),
             ("not", 1) => Ok(Math::Not([children[0]])),
+            ("bubble", 2) => Ok(Math::Bubble([children[0], children[1]])),
             (s, 0) => {
                 if let Ok(n) = s.parse::<i32>() {
                     Ok(Math::Num(n))
@@ -139,12 +151,14 @@ impl Display for Math {
             Math::Add(_) => write!(f, "Add"),
             Math::Mul(_) => write!(f, "Mul"),
             Math::Div(_) => write!(f, "Div"),
+            Math::SaveDiv(_) => write!(f, "SaveDiv"),
             Math::Shl(_) => write!(f, "Shl"),
             Math::AuxDiv(_) => write!(f, "AuxDiv"),
             Math::And(_) => write!(f, "And"),
             Math::Lt(_) => write!(f, "Lt"),
             Math::Eq(_) => write!(f, "Eq"),
             Math::Not(_) => write!(f, "Not"),
+            Math::Bubble(_) => write!(f, "Bubble"),
         }
     }
 }

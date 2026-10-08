@@ -1,6 +1,6 @@
-mod aux_var_populator;
 mod language_definition;
 mod my_cost_function;
+mod post_extraction_functions;
 mod serialiser;
 
 use std::{
@@ -16,11 +16,11 @@ use egg::{
 
 use serialiser::egg_to_serialized_egraph;
 
-use crate::my_cost_function::SillyCostFn;
 use crate::{
-    aux_var_populator::populate_auxiliary_division,
     language_definition::{EGraph, Math},
+    post_extraction_functions::populate_auxiliary_division,
 };
+use crate::{my_cost_function::SillyCostFn, post_extraction_functions::div_to_bubble};
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 struct IntRange {
@@ -28,7 +28,7 @@ struct IntRange {
     max_value: i32,
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Clone, Debug)]
 struct IntervalAnalysis {
     domains: HashMap<Symbol, IntRange>,
 }
@@ -68,33 +68,48 @@ pub fn main() {
     env_logger::init();
 
     let rules: &[Rewrite<Math, IntervalAnalysis>] = &[
-        rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
-        rewrite!("commute-mul"; "(* ?a ?b)" => "(* ?b ?a)"),
-        rewrite!("mult-zero";   "(* ?a 0)"  => "0"),
-        // rewrite!("mult-one";   "?a"  => "(* ?a 1)"), // Why does it reduce to 0?
-        rewrite!("add-zero";    "(+ ?a 0)"  => "?a"),
-        rewrite!(
-            "factor";
-            "(+ (* ?a ?b) (* ?a ?c))" =>
-            "(* ?a (+ ?b ?c))"
-        ),
-        // would need to add domain in future where x has a domain
-        // a new name has to appear
-        rewrite!("div-to-aux"; "(/ ?x ?y)" => "(auxdiv ?x ?y)"),
-        // (a + c*x) / (c*y) ~~> a / (c*y) + x / y
-        rewrite!(
-            "split-div";
-            "(/ (+ ?a (* ?c ?x)) (* ?c ?y))" =>
-            "(+ (/ ?a (* ?c ?y)) (/ ?x ?y))"
-        ),
+        // rewrite!("commute-add"; "(+ ?a ?b)" => "(+ ?b ?a)"),
+        // rewrite!("commute-mul"; "(* ?a ?b)" => "(* ?b ?a)"),
+        // rewrite!("mult-zero";   "(* ?a 0)"  => "0"),
+        // // rewrite!("mult-one";   "?a"  => "(* ?a 1)"), // Why does it reduce to 0?
+        // rewrite!("add-zero";    "(+ ?a 0)"  => "?a"),
+        // rewrite!(
+        //     "factor";
+        //     "(+ (* ?a ?b) (* ?a ?c))" =>
+        //     "(* ?a (+ ?b ?c))"
+        // ),
+        // // would need to add domain in future where x has a domain
+        // // a new name has to appear
+        // rewrite!("div-to-aux"; "(/ ?x ?y)" => "(auxdiv ?x ?y)"),
+        // // (a + c*x) / (c*y) ~~> a / (c*y) + x / y
+        // rewrite!(
+        //     "split-div";
+        //     "(/ (+ ?a (* ?c ?x)) (* ?c ?y))" =>
+        //     "(+ (/ ?a (* ?c ?y)) (/ ?x ?y))"
+        // ),
     ];
 
     let expr: RecExpr<Math> = vec![
         Math::Symbol("x".into()),
         Math::Symbol("y".into()),
-        Math::AuxDiv([0.into(), 1.into()]),
+        Math::Div([0.into(), 1.into()]),
         Math::Symbol("z".into()),
         Math::Eq([2.into(), 3.into()]),
+        Math::Not([4.into()]),
+    ]
+    .into();
+
+    let expr_fin: RecExpr<Math> = vec![
+        Math::Symbol("x".into()),
+        Math::Symbol("y".into()),
+        Math::SaveDiv([0.into(), 1.into()]),
+        Math::Num(0.into()),
+        Math::Eq([1.into(), 3.into()]),
+        Math::Not([4.into()]),
+        Math::Bubble([2.into(), 5.into()]), // but instead of and we would do Bubble
+        Math::Symbol("z".into()),
+        Math::Eq([6.into(), 7.into()]),
+        Math::Not([8.into()]),
     ]
     .into();
 
@@ -125,7 +140,7 @@ pub fn main() {
     // 3. Package the HashMap inside your custom Analysis struct
     let analysis: IntervalAnalysis = IntervalAnalysis { domains: domains };
 
-    let runner: Runner<Math, IntervalAnalysis> = Runner::new(analysis)
+    let runner: Runner<Math, IntervalAnalysis> = Runner::new(analysis.clone())
         .with_expr(&expr)
         .with_hook(|runner| {
             let serialised = egg_to_serialized_egraph(&runner.egraph);
@@ -149,7 +164,9 @@ pub fn main() {
 
     let (best_cost, best) = extractor.find_best(root);
 
-    let dummy_run = populate_auxiliary_division(best);
+    println!("{:?}", analysis);
+
+    let dummy_run = div_to_bubble(best);
 
     let dummy_runner: Runner<Math, ()> = Runner::default().with_expr(&dummy_run).run(&[]);
 

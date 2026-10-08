@@ -8,9 +8,9 @@
       "subsumed": false
     },
     "7.0": {
-      "op": "And",
+      "op": "Bubble",
       "children": [
-        "4.0",
+        "3.0",
         "6.0"
       ],
       "eclass": "7",
@@ -18,17 +18,19 @@
       "subsumed": false
     },
     "3.0": {
-      "op": "v_0",
-      "children": [],
+      "op": "SaveDiv",
+      "children": [
+        "2.0",
+        "1.0"
+      ],
       "eclass": "3",
       "cost": 1.0,
       "subsumed": false
     },
     "6.0": {
-      "op": "Eq",
+      "op": "Not",
       "children": [
-        "5.0",
-        "2.0"
+        "5.0"
       ],
       "eclass": "6",
       "cost": 1.0,
@@ -41,11 +43,20 @@
       "cost": 1.0,
       "subsumed": false
     },
-    "5.0": {
-      "op": "Mul",
+    "9.0": {
+      "op": "Not",
       "children": [
-        "3.0",
-        "1.0"
+        "8.0"
+      ],
+      "eclass": "9",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "5.0": {
+      "op": "Eq",
+      "children": [
+        "1.0",
+        "4.0"
       ],
       "eclass": "5",
       "cost": 1.0,
@@ -58,12 +69,19 @@
       "cost": 1.0,
       "subsumed": false
     },
-    "4.0": {
+    "8.0": {
       "op": "Eq",
       "children": [
-        "3.0",
+        "7.0",
         "0.0"
       ],
+      "eclass": "8",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "4.0": {
+      "op": "0",
+      "children": [],
       "eclass": "4",
       "cost": 1.0,
       "subsumed": false

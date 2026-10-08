@@ -21,6 +21,15 @@
       "cost": 1.0,
       "subsumed": false
     },
+    "5.0": {
+      "op": "Not",
+      "children": [
+        "4.0"
+      ],
+      "eclass": "5",
+      "cost": 1.0,
+      "subsumed": false
+    },
     "4.0": {
       "op": "Eq",
       "children": [
@@ -32,7 +41,7 @@
       "subsumed": false
     },
     "2.0": {
-      "op": "AuxDiv",
+      "op": "Div",
       "children": [
         "0.0",
         "1.0"
