@@ -18,9 +18,9 @@ use serialiser::egg_to_serialized_egraph;
 
 use crate::{
     language_definition::{EGraph, Math},
-    post_extraction_functions::populate_auxiliary_division,
+    post_extraction_functions::{bubble_up, div_to_bubble, expand_bubble, populate_auxiliary_division},
 };
-use crate::{my_cost_function::SillyCostFn, post_extraction_functions::div_to_bubble};
+use crate::my_cost_function::SillyCostFn;
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 struct IntRange {
@@ -96,20 +96,6 @@ pub fn main() {
         Math::Symbol("z".into()),
         Math::Eq([2.into(), 3.into()]),
         Math::Not([4.into()]),
-    ]
-    .into();
-
-    let expr_fin: RecExpr<Math> = vec![
-        Math::Symbol("x".into()),
-        Math::Symbol("y".into()),
-        Math::SaveDiv([0.into(), 1.into()]),
-        Math::Num(0.into()),
-        Math::Eq([1.into(), 3.into()]),
-        Math::Not([4.into()]),
-        Math::Bubble([2.into(), 5.into()]), // but instead of and we would do Bubble
-        Math::Symbol("z".into()),
-        Math::Eq([6.into(), 7.into()]),
-        Math::Not([8.into()]),
     ]
     .into();
 

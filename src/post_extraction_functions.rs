@@ -173,8 +173,87 @@ pub fn div_to_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {
     Bring bubbles with a non-boolean expression higher up the tree.
 
     E.g. ((a / b) @ (b != 0)) = c => (a / b = c) @ (b != 0)
+
+    BEFORE THIS FUNCTION
+    let expr_fin: RecExpr<Math> = vec![
+        Math::Symbol("x".into()),
+        Math::Symbol("y".into()),
+        Math::SaveDiv([0.into(), 1.into()]),
+        Math::Num(0.into()),
+        Math::Eq([1.into(), 3.into()]),
+        Math::Not([4.into()]),
+        Math::Bubble([2.into(), 5.into()]),
+        Math::Symbol("z".into()),
+        Math::Eq([6.into(), 7.into()]),
+        Math::Not([8.into()]),
+    ]
+    .into();
+
+    AFTER THIS FUNCTION??
+
+    let expr_fin: RecExpr<Math> = vec![
+        Math::Symbol("x".into()),
+        Math::Symbol("y".into()),
+        Math::SaveDiv([0.into(), 1.into()]),
+        Math::Num(0.into()),
+        Math::Eq([1.into(), 3.into()]),
+        Math::Not([4.into()]),
+        Math::Bubble([2.into(), 5.into()]),
+        Math::Symbol("z".into()),
+        Math::Eq([6.into(), 7.into()]),
+        Math::Not([8.into()]),
+    ]
+    .into();
 */
-fn bubble_up(final_tree: RecExpr<Math>, symbol_table: IntervalAnalysis, constraint_id: Id) {}
+fn bubble_up(final_tree: RecExpr<Math>) -> RecExpr<Math> {
+    // if final_tree.root is of type Math::Bubble
+    // than throw an error. that should never happen
+
+    // let mut sub = expr.children();
+    // let mut bubbled_conditions = vec![];
+
+    // get all bubbled conditions in a loop like this
+    // for e in sub.iter_mut() {
+    //     if let Math::Bubble(_, a, b) = e
+    //         && a.return_type() != ReturnType::Bool
+    //     {
+    //         let a = Moo::unwrap_or_clone(Moo::clone(a));
+    //         let b = Moo::unwrap_or_clone(Moo::clone(b));
+    //         bubbled_conditions.push(b);
+    //         *e = a; // this unwraps a bubble
+    //     }
+    // }
+
+    // if no bubble than don't do anything
+    // if one bubble than just insert a bubble at the expression
+    // if there are more than one bubble than
+}
+
+/*
+    Reduce bubbles with a boolean expression to a conjunction with their condition.
+
+    e.g. (a / b = c) @ (b != 0) => (a / b = c) & (b != 0)
+*/
+fn expand_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {}
+
+/*
+// conjure oxide function
+#[register_rule("Bubble", 8900, [Bubble])]
+fn expand_bubble(expr: &Expression, _: &SymbolTable) -> ApplicationResult {
+    match expr {
+        Expression::Bubble(_, a, b) if a.return_type() == ReturnType::Bool => {
+            let a = Moo::unwrap_or_clone(Moo::clone(a));
+            let b = Moo::unwrap_or_clone(Moo::clone(b));
+            Ok(Reduction::pure(Expression::And(
+                Metadata::new(),
+                Moo::new(matrix_expr![a, b]),
+            )))
+        }
+        _ => Err(ApplicationError::RuleNotApplicable),
+    }
+}
+*/
+
 // do not put root inside a bubble
 //
 

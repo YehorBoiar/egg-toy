@@ -27,6 +27,15 @@
       "cost": 1.0,
       "subsumed": false
     },
+    "10.0": {
+      "op": "Not",
+      "children": [
+        "9.0"
+      ],
+      "eclass": "10",
+      "cost": 1.0,
+      "subsumed": false
+    },
     "6.0": {
       "op": "Not",
       "children": [
@@ -44,9 +53,10 @@
       "subsumed": false
     },
     "9.0": {
-      "op": "Not",
+      "op": "And",
       "children": [
-        "8.0"
+        "8.0",
+        "6.0"
       ],
       "eclass": "9",
       "cost": 1.0,
@@ -72,7 +82,7 @@
     "8.0": {
       "op": "Eq",
       "children": [
-        "7.0",
+        "3.0",
         "0.0"
       ],
       "eclass": "8",
