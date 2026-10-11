@@ -210,31 +210,24 @@ pub fn div_to_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {
 
 take in final tree
 
-let conditinos_poket = []
 let vector = []
 
 for each node in final_tree:
-    // first case A:
-    the node is a bubble([expr, cond])
-        unwrap expr
-        put cond in conditions_pocket
-        // I would need to write new expr in a vector so that we match
-        vector.add(expr.id)
-    // second case B:
-    the node is a boolean
-        add the boolean node to the new tree
-        if conditions has something
-            let bubbled_condtions = AND all conditions_poket with and
-            create a new Bubble([node.id, bubbled_condtions])
-            clear poket vector
-            vector.add(node.id)
-        else
-            vector.add(node.id)
-    // third case C:
-    otherwise
-        add to new tree
-        vector.add(node.id)
 
+    let local_bubbles = []
+    for each child in node:
+        if child is bubble([expr, cond]) and !is_boolean(expr)
+            local_bubbles.push(cond)
+            unwrap child
+
+    add the boolean node to the new tree
+    if local_bubbles has something
+        let bubbled_condtions = AND all local_bubbles
+        create a new Bubble([node.id, bubbled_condtions])
+        clear local_bubbles
+        vector.add(node.id)
+    else
+        vector.add(node.id)
 */
 fn is_boolean(id: Id, tree: &RecExpr<Math>) -> bool {
     matches!(
@@ -253,44 +246,41 @@ pub fn bubble_up(final_tree: RecExpr<Math>) -> Result<RecExpr<Math>, &'static st
 
     let mut final_expression: RecExpr<Math> = vec![].into();
     let mut id_map: Vec<Id> = vec![];
-    let mut conditions_pocket: Vec<Id> = vec![].into();
 
     for node in final_tree.as_ref() {
         let mut new_node = node.clone();
+        let mut local_conditions_pocket = vec![];
 
         // Remap children to point to the newly constructed IDs
         for child in new_node.children_mut() {
             *child = id_map[usize::from(*child)];
         }
 
-        match new_node {
-            Math::Bubble([expr, cond]) if !is_boolean(expr, &final_expression) => {
-                conditions_pocket.push(cond);
-                id_map.push(expr);
-            }
-
-            Math::Eq(_) | Math::Lt(_) | Math::Not(_) | Math::And(_) => {
-                let bool_id = final_expression.add(new_node);
-
-                if !conditions_pocket.is_empty() {
-                    // combine all conditions in the pocket with And
-                    let mut combined_cond = conditions_pocket[0];
-                    for &c in &conditions_pocket[1..] {
-                        combined_cond = final_expression.add(Math::And([combined_cond, c]));
-                    }
-
-                    let bubble_id = final_expression.add(Math::Bubble([bool_id, combined_cond]));
-                    conditions_pocket.clear();
-                    id_map.push(bubble_id);
-                } else {
-                    id_map.push(bool_id);
+        // this loop introduces dead code
+        for child in new_node.children_mut() {
+            if let Math::Bubble([expr, cond]) = final_expression[*child] {
+                if !is_boolean(expr, &final_expression) {
+                    local_conditions_pocket.push(cond);
+                    *child = expr;
                 }
             }
+        }
 
-            _ => {
-                let new_id = final_expression.add(new_node);
-                id_map.push(new_id);
+        let bool_id = final_expression.add(new_node);
+
+        if !local_conditions_pocket.is_empty() {
+            // combine all conditions in the pocket with And
+            let mut combined_cond = local_conditions_pocket[0];
+
+            for &c in &local_conditions_pocket[1..] {
+                combined_cond = final_expression.add(Math::And([combined_cond, c]));
             }
+
+            let bubble_id = final_expression.add(Math::Bubble([bool_id, combined_cond]));
+            local_conditions_pocket.clear();
+            id_map.push(bubble_id);
+        } else {
+            id_map.push(bool_id);
         }
     }
 

@@ -90,12 +90,19 @@ pub fn main() {
     ];
 
     let expr: RecExpr<Math> = vec![
-        Math::Symbol("x".into()),
-        Math::Symbol("y".into()),
-        Math::Div([0.into(), 1.into()]),
-        Math::Symbol("z".into()),
-        Math::Eq([2.into(), 3.into()]),
-        Math::Not([4.into()]),
+        // !(x/y = z)
+        Math::Symbol("x".into()),        // 0
+        Math::Symbol("y".into()),        // 1
+        Math::Div([0.into(), 1.into()]), // 2: x / y
+        Math::Symbol("z".into()),        // 3: z
+        Math::Eq([2.into(), 3.into()]),  // 4: x / y = z
+        Math::Not([4.into()]),           // 5: !(x / y = z)
+        // x/y = t
+        Math::Div([0.into(), 1.into()]), // 6: x / y
+        Math::Symbol("t".into()),        // 7: t
+        Math::Eq([6.into(), 7.into()]),  // 8: x / y = t
+        // !(x/y = z) /\ (x/y = t)
+        Math::And([5.into(), 8.into()]), // 9
     ]
     .into();
 
@@ -120,6 +127,13 @@ pub fn main() {
         IntRange {
             min_value: 1,
             max_value: 2,
+        },
+    );
+    domains.insert(
+        Symbol::from("t"),
+        IntRange {
+            min_value: 1,
+            max_value: 3,
         },
     );
 
@@ -168,8 +182,8 @@ pub fn main() {
     )
     /\ (v_1 * (3 * y) == (a * 2) + (x * 3))
      */
-    println!("{:?}", dummy_run);
-    println!("{}", best_cost);
+    println!("\n--------------\nDUMMY RUN: {:?}\n----------", dummy_run);
+    println!("BEST COST: {}", best_cost);
 }
 
 // ((a * c) + (a * d)) + ((b * c) + (b * d))
