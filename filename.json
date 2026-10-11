@@ -70,7 +70,7 @@
       "subsumed": false
     },
     "8.0": {
-      "op": "Bubble",
+      "op": "And",
       "children": [
         "7.0",
         "6.0"

@@ -208,7 +208,7 @@ pub fn div_to_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {
 
 /*
 
-take in final tree bottom up algorithm
+take in final tree
 
 let conditinos_poket = []
 let vector = []
@@ -252,8 +252,8 @@ pub fn bubble_up(final_tree: RecExpr<Math>) -> Result<RecExpr<Math>, &'static st
     }
 
     let mut final_expression: RecExpr<Math> = vec![].into();
-    let mut id_map: Vec<Id> = Vec::with_capacity(final_tree.as_ref().len());
-    let mut conditions_pocket: Vec<Id> = Vec::new();
+    let mut id_map: Vec<Id> = vec![];
+    let mut conditions_pocket: Vec<Id> = vec![].into();
 
     for node in final_tree.as_ref() {
         let mut new_node = node.clone();
@@ -279,7 +279,6 @@ pub fn bubble_up(final_tree: RecExpr<Math>) -> Result<RecExpr<Math>, &'static st
                         combined_cond = final_expression.add(Math::And([combined_cond, c]));
                     }
 
-                    // new Bubble wrapping this boolean expression with the combined conditions
                     let bubble_id = final_expression.add(Math::Bubble([bool_id, combined_cond]));
                     conditions_pocket.clear();
                     id_map.push(bubble_id);
@@ -299,11 +298,23 @@ pub fn bubble_up(final_tree: RecExpr<Math>) -> Result<RecExpr<Math>, &'static st
 }
 
 /*
-        Reduce bubbles with a boolean expression to a conjunction with their condition.
+    Reduce bubbles with a boolean expression to a conjunction with their condition.
 
     e.g. (a / b = c) @ (b != 0) => (a / b = c) & (b != 0)
 */
-// fn expand_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {}
+pub fn expand_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {
+    let mut final_expression: RecExpr<Math> = vec![].into();
+
+    for node in final_tree.as_ref() {
+        if let Math::Bubble([a, b]) = node {
+            final_expression.add(Math::And([*a, *b]));
+        } else {
+            final_expression.add(node.clone());
+        }
+    }
+
+    final_expression
+}
 
 /*
 // conjure oxide function
