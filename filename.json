@@ -8,10 +8,10 @@
       "subsumed": false
     },
     "7.0": {
-      "op": "Bubble",
+      "op": "Eq",
       "children": [
         "3.0",
-        "6.0"
+        "0.0"
       ],
       "eclass": "7",
       "cost": 1.0,
@@ -24,15 +24,6 @@
         "1.0"
       ],
       "eclass": "3",
-      "cost": 1.0,
-      "subsumed": false
-    },
-    "10.0": {
-      "op": "Not",
-      "children": [
-        "9.0"
-      ],
-      "eclass": "10",
       "cost": 1.0,
       "subsumed": false
     },
@@ -53,10 +44,9 @@
       "subsumed": false
     },
     "9.0": {
-      "op": "And",
+      "op": "Not",
       "children": [
-        "8.0",
-        "6.0"
+        "8.0"
       ],
       "eclass": "9",
       "cost": 1.0,
@@ -80,10 +70,10 @@
       "subsumed": false
     },
     "8.0": {
-      "op": "Eq",
+      "op": "Bubble",
       "children": [
-        "3.0",
-        "0.0"
+        "7.0",
+        "6.0"
       ],
       "eclass": "8",
       "cost": 1.0,

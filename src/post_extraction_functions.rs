@@ -9,11 +9,11 @@ use egg::{
     RecExpr, Rewrite, Runner, RunnerResult, Subst, Symbol, rewrite,
 };
 
-use crate::my_cost_function::SillyCostFn;
 use crate::{
     IntRange, IntervalAnalysis,
     language_definition::{EGraph, Math},
 };
+use crate::{language_definition::MathDiscriminant, my_cost_function::SillyCostFn};
 
 // This function would go through the final tree, replace all
 // AuxDiv with variables (if count condition holds) and return
@@ -189,52 +189,121 @@ pub fn div_to_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {
     ]
     .into();
 
-    AFTER THIS FUNCTION??
+    AFTER THIS FUNCTION
 
-    let expr_fin: RecExpr<Math> = vec![
-        Math::Symbol("x".into()),
-        Math::Symbol("y".into()),
-        Math::SaveDiv([0.into(), 1.into()]),
-        Math::Num(0.into()),
-        Math::Eq([1.into(), 3.into()]),
-        Math::Not([4.into()]),
-        Math::Bubble([2.into(), 5.into()]),
-        Math::Symbol("z".into()),
-        Math::Eq([6.into(), 7.into()]),
-        Math::Not([8.into()]),
+    let expr_bubbled: RecExpr<Math> = vec![
+        Math::Symbol("x".into()),            // 0: x
+        Math::Symbol("y".into()),            // 1: y
+        Math::SaveDiv([0.into(), 1.into()]), // 2: x / y
+        Math::Num(0.into()),                 // 3: 0
+        Math::Eq([1.into(), 3.into()]),      // 4: y == 0
+        Math::Not([4.into()]),               // 5: !(y == 0)  ->  (y != 0)
+        Math::Symbol("z".into()),            // 6: z
+        Math::Eq([2.into(), 6.into()]),      // 7: (x / y) == z
+        Math::Bubble([7.into(), 5.into()]),  // 8: ((x / y) == z) @ (y != 0) <- Bubble lifted to Eq
+        Math::Not([8.into()]),               // 9: !(((x / y) == z) @ (y != 0))
     ]
     .into();
 */
-fn bubble_up(final_tree: RecExpr<Math>) -> RecExpr<Math> {
+
+/*
+
+take in final tree bottom up algorithm
+
+let conditinos_poket = []
+let vector = []
+
+for each node in final_tree:
+    // first case A:
+    the node is a bubble([expr, cond])
+        unwrap expr
+        put cond in conditions_pocket
+        // I would need to write new expr in a vector so that we match
+        vector.add(expr.id)
+    // second case B:
+    the node is a boolean
+        add the boolean node to the new tree
+        if conditions has something
+            let bubbled_condtions = AND all conditions_poket with and
+            create a new Bubble([node.id, bubbled_condtions])
+            clear poket vector
+            vector.add(node.id)
+        else
+            vector.add(node.id)
+    // third case C:
+    otherwise
+        add to new tree
+        vector.add(node.id)
+
+*/
+fn is_boolean(id: Id, tree: &RecExpr<Math>) -> bool {
+    matches!(
+        tree[id],
+        Math::Eq(_) | Math::Lt(_) | Math::Not(_) | Math::And(_)
+    )
+}
+
+// This function bubbles non-boolean bubble conditions up to the nearest enclosing boolean node
+pub fn bubble_up(final_tree: RecExpr<Math>) -> Result<RecExpr<Math>, &'static str> {
     // if final_tree.root is of type Math::Bubble
     // than throw an error. that should never happen
+    if matches!(final_tree.as_ref().last(), Some(Math::Bubble(_))) {
+        return Err("Root cannot be a Bubble");
+    }
 
-    // let mut sub = expr.children();
-    // let mut bubbled_conditions = vec![];
+    let mut final_expression: RecExpr<Math> = vec![].into();
+    let mut id_map: Vec<Id> = Vec::with_capacity(final_tree.as_ref().len());
+    let mut conditions_pocket: Vec<Id> = Vec::new();
 
-    // get all bubbled conditions in a loop like this
-    // for e in sub.iter_mut() {
-    //     if let Math::Bubble(_, a, b) = e
-    //         && a.return_type() != ReturnType::Bool
-    //     {
-    //         let a = Moo::unwrap_or_clone(Moo::clone(a));
-    //         let b = Moo::unwrap_or_clone(Moo::clone(b));
-    //         bubbled_conditions.push(b);
-    //         *e = a; // this unwraps a bubble
-    //     }
-    // }
+    for node in final_tree.as_ref() {
+        let mut new_node = node.clone();
 
-    // if no bubble than don't do anything
-    // if one bubble than just insert a bubble at the expression
-    // if there are more than one bubble than
+        // Remap children to point to the newly constructed IDs
+        for child in new_node.children_mut() {
+            *child = id_map[usize::from(*child)];
+        }
+
+        match new_node {
+            Math::Bubble([expr, cond]) if !is_boolean(expr, &final_expression) => {
+                conditions_pocket.push(cond);
+                id_map.push(expr);
+            }
+
+            Math::Eq(_) | Math::Lt(_) | Math::Not(_) | Math::And(_) => {
+                let bool_id = final_expression.add(new_node);
+
+                if !conditions_pocket.is_empty() {
+                    // combine all conditions in the pocket with And
+                    let mut combined_cond = conditions_pocket[0];
+                    for &c in &conditions_pocket[1..] {
+                        combined_cond = final_expression.add(Math::And([combined_cond, c]));
+                    }
+
+                    // new Bubble wrapping this boolean expression with the combined conditions
+                    let bubble_id = final_expression.add(Math::Bubble([bool_id, combined_cond]));
+                    conditions_pocket.clear();
+                    id_map.push(bubble_id);
+                } else {
+                    id_map.push(bool_id);
+                }
+            }
+
+            _ => {
+                let new_id = final_expression.add(new_node);
+                id_map.push(new_id);
+            }
+        }
+    }
+
+    Ok(final_expression)
 }
 
 /*
-    Reduce bubbles with a boolean expression to a conjunction with their condition.
+        Reduce bubbles with a boolean expression to a conjunction with their condition.
 
     e.g. (a / b = c) @ (b != 0) => (a / b = c) & (b != 0)
 */
-fn expand_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {}
+// fn expand_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {}
 
 /*
 // conjure oxide function

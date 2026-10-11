@@ -18,9 +18,9 @@ use serialiser::egg_to_serialized_egraph;
 
 use crate::{
     language_definition::{EGraph, Math},
-    post_extraction_functions::{bubble_up, div_to_bubble, expand_bubble, populate_auxiliary_division},
+    post_extraction_functions::{div_to_bubble, populate_auxiliary_division},
 };
-use crate::my_cost_function::SillyCostFn;
+use crate::{my_cost_function::SillyCostFn, post_extraction_functions::bubble_up};
 
 #[derive(Default, Debug, Clone, PartialEq, Eq)]
 struct IntRange {
@@ -152,7 +152,9 @@ pub fn main() {
 
     println!("{:?}", analysis);
 
-    let dummy_run = div_to_bubble(best);
+    let mut dummy_run = div_to_bubble(best);
+    
+    let dummy_run = bubble_up(dummy_run.clone()).unwrap();
 
     let dummy_runner: Runner<Math, ()> = Runner::default().with_expr(&dummy_run).run(&[]);
 
