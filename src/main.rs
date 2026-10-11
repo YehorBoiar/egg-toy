@@ -18,7 +18,7 @@ use serialiser::egg_to_serialized_egraph;
 
 use crate::{
     language_definition::{EGraph, Math},
-    post_extraction_functions::{div_to_bubble, expand_bubble, populate_auxiliary_division},
+    post_extraction_functions::{expand_bubble, make_div_legal, populate_auxiliary_division},
 };
 use crate::{my_cost_function::SillyCostFn, post_extraction_functions::bubble_up};
 
@@ -106,6 +106,30 @@ pub fn main() {
     ]
     .into();
 
+    /*
+        Thingy to check if we don't add constraints when don't need to
+       let expr: RecExpr<Math> = vec![
+           // !(x/y = z)
+           Math::Symbol("x".into()),        // 0
+           Math::Symbol("y".into()),        // 1
+           Math::Div([0.into(), 1.into()]), // 2: x / y
+           Math::Symbol("z".into()),        // 3: z
+           Math::Eq([2.into(), 3.into()]),  // 4: x / y = z
+           Math::Not([4.into()]),           // 5: !(x / y = z)
+           // x/y = t
+           Math::Div([0.into(), 1.into()]), // 6: x / y
+           Math::Symbol("t".into()),        // 7: t
+           Math::Eq([6.into(), 7.into()]),  // 8: x / y = t
+           // x/z = t
+           Math::Div([0.into(), 3.into()]), // 9: x / z
+           Math::Eq([9.into(), 7.into()]),  // 10: (x / z) = t
+           // !(x/y = z) /\ (x/y = t) /\ (x/z = t)
+           Math::And([5.into(), 8.into()]),   // 11
+           Math::And([11.into(), 10.into()]), // 12
+       ]
+       .into();
+    */
+
     let mut domains = HashMap::new();
     // 2. Put your domains into it using the variable names
     domains.insert(
@@ -166,8 +190,9 @@ pub fn main() {
 
     println!("{:?}", analysis);
 
-    let dummy_run = expand_bubble(bubble_up(div_to_bubble(best)).unwrap());
-
+    let dummy_run = expand_bubble(bubble_up(make_div_legal(best, &analysis)).unwrap());
+    // let dummy_run = div_to_bubble(best);
+    //
     let dummy_runner: Runner<Math, ()> = Runner::default().with_expr(&dummy_run).run(&[]);
 
     let serialised = egg_to_serialized_egraph(&dummy_runner.egraph);

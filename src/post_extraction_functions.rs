@@ -138,28 +138,59 @@ pub fn populate_auxiliary_division(final_tree: RecExpr<Math>) -> RecExpr<Math> {
     ]
     .into();
 */
-/// Takes in a tree and turns all divs into bubble safediv
-pub fn div_to_bubble(final_tree: RecExpr<Math>) -> RecExpr<Math> {
-    // in conjure-oxide we make some more safety checks here
-    // but for just skip
+
+fn can_be_zero(id: Id, tree: &RecExpr<Math>, analysis: &IntervalAnalysis) -> bool {
+    match &tree[id] {
+        // If it's a constant number:
+        Math::Num(n) => *n == 0,
+
+        Math::Symbol(sym) => {
+            if let Some(range) = analysis.domains.get(sym) {
+                range.min_value <= 0 && range.max_value >= 0
+            } else {
+                true
+            }
+        }
+
+        _ => true,
+    }
+}
+
+/*
+make_div_legal
+
+accepts final_tree, and symboltable
+
+if we encounter node = division(x,y)
+    if domain(y).contains(0)
+        div_to_bubble(node) <--- does what div-to-bubble does in the loop when it find div rn
+    else:
+        div_to_savediv() <-- this would just turn our div into savediv
+
+*/
+pub fn make_div_legal(final_tree: RecExpr<Math>, analysis: &IntervalAnalysis) -> RecExpr<Math> {
     let mut final_expression: RecExpr<Math> = vec![].into();
     let mut id_map: Vec<Id> = vec![];
 
     for node in final_tree.as_ref() {
         let mut new_node = node.clone();
 
-        // make child point at a correct node
         for child in new_node.children_mut() {
             *child = id_map[usize::from(*child)];
         }
 
         if let Math::Div([a, b]) = new_node {
             let savediv_id = final_expression.add(Math::SaveDiv([a, b]));
-            let zero_id = final_expression.add(Math::Num(0));
-            let eq_id = final_expression.add(Math::Eq([b, zero_id]));
-            let not_id = final_expression.add(Math::Not([eq_id]));
-            let bubble_id = final_expression.add(Math::Bubble([savediv_id, not_id]));
-            id_map.push(bubble_id);
+
+            if can_be_zero(b, &final_expression, analysis) {
+                let zero_id = final_expression.add(Math::Num(0));
+                let eq_id = final_expression.add(Math::Eq([b, zero_id]));
+                let not_id = final_expression.add(Math::Not([eq_id]));
+                let bubble_id = final_expression.add(Math::Bubble([savediv_id, not_id]));
+                id_map.push(bubble_id);
+            } else {
+                id_map.push(savediv_id);
+            }
         } else {
             let new_id = final_expression.add(new_node);
             id_map.push(new_id);

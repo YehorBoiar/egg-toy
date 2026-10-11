@@ -10,8 +10,8 @@
     "11.0": {
       "op": "Eq",
       "children": [
-        "3.0",
-        "10.0"
+        "6.0",
+        "0.0"
       ],
       "eclass": "11",
       "cost": 1.0,
@@ -38,26 +38,36 @@
       "subsumed": false
     },
     "6.0": {
-      "op": "Not",
+      "op": "SaveDiv",
       "children": [
+        "2.0",
         "5.0"
       ],
       "eclass": "6",
       "cost": 1.0,
       "subsumed": false
     },
-    "9.0": {
+    "17.0": {
       "op": "And",
       "children": [
-        "8.0",
-        "6.0"
+        "16.0",
+        "4.0"
+      ],
+      "eclass": "17",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "9.0": {
+      "op": "Not",
+      "children": [
+        "8.0"
       ],
       "eclass": "9",
       "cost": 1.0,
       "subsumed": false
     },
     "1.0": {
-      "op": "y",
+      "op": "z",
       "children": [],
       "eclass": "1",
       "cost": 1.0,
@@ -67,32 +77,44 @@
       "op": "And",
       "children": [
         "11.0",
-        "6.0"
+        "9.0"
       ],
       "eclass": "12",
       "cost": 1.0,
       "subsumed": false
     },
     "4.0": {
-      "op": "0",
-      "children": [],
+      "op": "Eq",
+      "children": [
+        "3.0",
+        "0.0"
+      ],
       "eclass": "4",
       "cost": 1.0,
       "subsumed": false
     },
-    "7.0": {
-      "op": "And",
+    "15.0": {
+      "op": "Not",
       "children": [
-        "3.0",
-        "6.0"
+        "14.0"
       ],
+      "eclass": "15",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "7.0": {
+      "op": "0",
+      "children": [],
       "eclass": "7",
       "cost": 1.0,
       "subsumed": false
     },
     "10.0": {
-      "op": "z",
-      "children": [],
+      "op": "And",
+      "children": [
+        "6.0",
+        "9.0"
+      ],
       "eclass": "10",
       "cost": 1.0,
       "subsumed": false
@@ -105,29 +127,37 @@
       "subsumed": false
     },
     "13.0": {
-      "op": "Not",
+      "op": "Eq",
       "children": [
-        "12.0"
+        "6.0",
+        "1.0"
       ],
       "eclass": "13",
       "cost": 1.0,
       "subsumed": false
     },
     "5.0": {
-      "op": "Eq",
-      "children": [
-        "1.0",
-        "4.0"
-      ],
+      "op": "y",
+      "children": [],
       "eclass": "5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "16.0": {
+      "op": "And",
+      "children": [
+        "15.0",
+        "12.0"
+      ],
+      "eclass": "16",
       "cost": 1.0,
       "subsumed": false
     },
     "8.0": {
       "op": "Eq",
       "children": [
-        "3.0",
-        "0.0"
+        "5.0",
+        "7.0"
       ],
       "eclass": "8",
       "cost": 1.0,
